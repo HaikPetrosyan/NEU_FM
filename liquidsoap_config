@@ -1,1 +1,68 @@
+# Neufm config
+# Log dir and parametrs
+set("log.file.path", "/var/log/liquidsoap/neufm.log")
+set("log.stout", true)
 
+# Set tag encoding
+set("tag.encodings", ["UTF-8"])
+
+# Use the telnet server for requests
+set("server.telnet", true)
+
+# Live settings
+set("harbor.bind_addr", "0.0.0.0")
+
+# Rewrite tags
+
+def live_tag(j)
+    rewrite_metadata([("title","Прямой эфир")], update = false, strip = true, j)
+end 
+
+def live_rep_tag(j)
+    rewrite_metadata([("title", "Повтор прямого эфира")],update = false, strip = true, j)
+end
+
+def my_rec_tag(j)
+    rewrite_metadata([("title", "Моя передача")],update = false, strip = true, j)
+end
+
+def utro_tag(j)
+    rewrite_metadata([("title", "Утренний плейлист")],update = false, strip = true, j)
+end
+
+def den_tag(j)
+    rewrite_metadata([("title", "Дневной плейлист")],update = false, strip = true, j)
+end
+
+def vecher_tag(j)
+    rewrite_metadata([("title", "Вечерний плейлист")],update = false, strip = true, j)
+end
+
+def noch_tag(j)
+    rewrite_metadata([("title", "Ночной плейлист")],update = false, strip = true, j)
+end
+
+def jin_tag(j)
+    rewrite_metadata([("title", "Джинглы")],update = false, strip = true, j)
+end
+
+# Live input 
+live = audio_to_stereo(live_tag(input.harbor(id="LIVE", port = 8010, password = "neufm", "live"))
+liveover = audio_to_stereo(input.harbor(port = 8010, password = "neufm_over", "liveover"))
+
+# Talking clock
+clock00 = audio_to_stereo(playlist("/home/radio/audio/clock/00/"))
+clock12 = audio_to_stereo(playlist("/home/radio/audio/clock/12/"))
+
+# Records play
+live_rep = audio_to_stereo(live_rep_tag(request.queue(id = "LIVE_REP", timeout = 120.)))
+my_rec_programm = audio_to_stereo(my_rec_tag(request.queue(id = "MY_REC_PROGRAMM", timeout = 120.)))
+
+# Music playlist
+utro = audio_to_stereo(utro_tag("/home/radio/audio/utro/")))
+den = audio_to_stereo(utro_tag("/home/radio/audio/den/")))
+vecher = audio_to_stereo(vecher_tag(request.dynamic(id = "VECHER_PLAY", {request.create("bar:foo" indicators = get_process_lines("usr/bin/python /home/radio/scripts/script.py"))})))
+noch = audio_to_stereo(utro_tag("/home/radio/audio/noch/")))
+
+# Jingle playlist
+jin = audio_to_stereo(utro_tag("/home/radio/audio/jingle/")))
